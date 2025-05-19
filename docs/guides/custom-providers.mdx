@@ -1,0 +1,229 @@
+---
+title: 'Custom Providers Guide'
+description: 'Learn how to implement custom AI providers in AI CAD SDK'
+---
+
+# Custom Providers Guide
+
+This guide explains how to implement custom AI providers in the AI CAD SDK.
+
+## Basic Implementation
+
+Create a custom adapter by implementing the `AIAdapter` interface:
+
+```typescript
+import { 
+  AIService,
+  AIAdapter, 
+  AIRequest, 
+  AIResponse, 
+  AIError 
+} from 'ai-cad-sdk-types';
+
+class CustomAIAdapter implements AIAdapter {
+  private apiKey: string;
+  private endpoint: string;
+
+  constructor(config: CustomConfig) {
+    this.apiKey = config.apiKey;
+    this.endpoint = config.endpoint;
+  }
+
+  async generateText(request: AIRequest): Promise<AIResponse> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: request.prompt,
+          maxTokens: request.maxTokens,
+          temperature: request.temperature
+        })
+      });
+
+      if (!response.ok) {
+        throw new AIError({
+          code: 'service_error',
+          message: 'Provider API request failed'
+        });
+      }
+
+      const data = await response.json();
+      
+      return {
+        text: data.text,
+        usage: {
+          promptTokens: data.usage.prompt_tokens,
+          completionTokens: data.usage.completion_tokens,
+          totalTokens: data.usage.total_tokens
+        },
+        metadata: {
+          provider: 'custom',
+          model: request.model,
+          duration: data.duration
+        }
+      };
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  private handleError(error: any): AIError {
+    if (error instanceof AIError) return error;
+    
+    return new AIError({
+      code: 'service_error',
+      message: error.message,
+      metadata: { originalError: error }
+    });
+  }
+}
+```
+
+## Registration and Usage
+
+Register your custom provider:
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+
+const customAdapter = new CustomAIAdapter({
+  apiKey: process.env.CUSTOM_API_KEY,
+  endpoint: 'https://api.custom-ai.com/v1/generate'
+});
+
+const aiService = new AIService({
+  adapter: customAdapter
+});
+
+// Use the service
+const response = await aiService.generateText({
+  prompt: 'Generate CAD model',
+  maxTokens: 2000
+});
+```
+
+## Advanced Features
+
+### 1. Stream Support
+
+Implement streaming responses:
+
+```typescript
+class StreamingCustomAdapter implements AIAdapter {
+  async *generateTextStream(request: AIRequest): AsyncGenerator<string> {
+    const response = await fetch(this.endpoint + '/stream', {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(request)
+    });
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No reader available');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield new TextDecoder().decode(value);
+    }
+  }
+}
+
+const streamingService = new AIService({
+  adapter: new StreamingCustomAdapter()
+});
+
+// Use streaming
+for await (const chunk of streamingService.generateTextStream(request)) {
+  console.log(chunk);
+}
+```
+
+### 2. Batch Processing
+
+Handle multiple requests efficiently:
+
+```typescript
+class BatchCustomAdapter implements AIAdapter {
+  async generateTextBatch(requests: AIRequest[]): Promise<AIResponse[]> {
+    const batchResponse = await fetch(this.endpoint + '/batch', {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ requests })
+    });
+
+    const results = await batchResponse.json();
+    return results.map(this.formatResponse);
+  }
+}
+
+const batchService = new AIService({
+  adapter: new BatchCustomAdapter()
+});
+
+// Use batch processing
+const responses = await batchService.generateTextBatch(requests);
+```
+
+### 3. Model Management
+
+Handle multiple models:
+
+```typescript
+class MultiModelAdapter implements AIAdapter {
+  private models: Map<string, ModelConfig>;
+
+  constructor(config: MultiModelConfig) {
+    this.models = new Map(Object.entries(config.models));
+  }
+
+  async generateText(request: AIRequest): Promise<AIResponse> {
+    const modelConfig = this.models.get(request.model);
+    if (!modelConfig) {
+      throw new AIError({
+        code: 'invalid_request',
+        message: `Model ${request.model} not supported`
+      });
+    }
+
+    // Use model-specific configuration
+    return this.makeRequest(request, modelConfig);
+  }
+}
+
+const multiModelService = new AIService({
+  adapter: new MultiModelAdapter({
+    models: {
+      'gpt-4': { /* config */ },
+      'claude-3': { /* config */ }
+    }
+  })
+});
+```
+
+## Best Practices
+
+1. **Error Handling**
+   - Implement comprehensive error handling
+   - Map provider errors to SDK error types
+   - Include detailed error information
+
+2. **Performance**
+   - Implement request retries
+   - Add request timeouts
+   - Use connection pooling
+
+3. **Security**
+   - Validate API keys
+   - Sanitize inputs
+   - Implement rate limiting
+
+4. **Monitoring**
+   - Log important events
+   - Track performance metrics
+   - Monitor error rates
+
+For more information about the adapter interface, check out the [Types Documentation](/docs/api-reference/types). 

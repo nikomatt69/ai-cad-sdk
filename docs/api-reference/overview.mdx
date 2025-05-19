@@ -1,87 +1,62 @@
 ---
 title: 'API Reference'
-description: 'Complete API reference for the AI CAD SDK packages'
+description: 'Complete API reference for the AI CAD SDK'
 ---
 
-# API Reference
+# AI CAD SDK API Reference
 
-The AI CAD SDK is organized into several packages, each serving a specific purpose. Here's an overview of the main packages:
+The AI CAD SDK is organized into several packages to provide a modular and flexible architecture:
 
-## Core Package (@ai-cad-sdk/core)
+## Core Package
+The `ai-cad-sdk-core` package provides the main functionality for interacting with AI services:
+- AI Configuration Management
+- Service Integration
+- Error Handling
+- Performance Optimization
 
-The core package provides the fundamental functionality for interacting with AI models:
+## Adapters Package
+The `ai-cad-sdk-adapters` package contains implementations for different AI providers:
+- Claude Integration
+- OpenAI Integration
+- Custom Provider Support
 
-```typescript
-import { createMCPClient, MCPConfig } from '@ai-cad-sdk/core';
+## React Package
+The `ai-cad-sdk-react` package offers React components and hooks for easy integration:
+- React Components
+- Custom Hooks
+- State Management
+- UI Components
+
+## Types Package
+The `ai-cad-sdk-types` package contains TypeScript type definitions:
+- AI Model Types
+- Configuration Types
+- Response Types
+- Error Types
+
+## Utils Package
+The `ai-cad-sdk-utils` package provides utility functions:
+- Analytics
+- Caching
+- Logging
+- Performance Monitoring
+
+## Getting Started
+
+To start using the SDK, install the required packages:
+
+```bash
+# Install core functionality
+yarn add ai-cad-sdk-core
+
+# Install provider adapters
+yarn add ai-cad-sdk-adapters
+
+# Install React components (if using React)
+yarn add ai-cad-sdk-react
+
+# Install types and utilities
+yarn add ai-cad-sdk-types ai-cad-sdk-utils
 ```
 
-### Key Features
-- Model management
-- Request handling
-- Response processing
-- Error handling
-
-## Adapters (@ai-cad-sdk/adapters)
-
-Adapters for different AI providers:
-
-```typescript
-import { OpenAIAdapter, ClaudeAdapter } from '@ai-cad-sdk/adapters';
-```
-
-### Supported Providers
-- OpenAI
-- Claude
-- Custom adapters
-
-## React Integration (@ai-cad-sdk/react)
-
-React hooks and components:
-
-```typescript
-import { useMCP, MCPProvider } from '@ai-cad-sdk/react';
-```
-
-### Components
-- MCPProvider
-- AIResponse
-- ModelSelector
-
-### Hooks
-- useMCP
-- useCompletion
-- useModelConfig
-
-## Types (@ai-cad-sdk/types)
-
-Type definitions used across the SDK:
-
-```typescript
-import { 
-  MCPRequest, 
-  MCPResponse,
-  ModelConfig
-} from '@ai-cad-sdk/types';
-```
-
-## Utils (@ai-cad-sdk/utils)
-
-Utility functions and helpers:
-
-```typescript
-import { 
-  formatPrompt,
-  validateConfig,
-  cacheManager
-} from '@ai-cad-sdk/utils';
-```
-
-## Package Details
-
-Each package has its own detailed documentation:
-
-- [Core Package Documentation](/docs/api-reference/core)
-- [Adapters Documentation](/docs/api-reference/adapters)
-- [React Package Documentation](/docs/api-reference/react)
-- [Types Documentation](/docs/api-reference/types)
-- [Utils Documentation](/docs/api-reference/utils) 
+For detailed documentation on each package, please refer to their respective sections in the sidebar. 

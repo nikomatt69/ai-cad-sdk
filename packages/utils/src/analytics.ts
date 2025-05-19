@@ -4,7 +4,7 @@ import {
   AIModelType,
   TokenUsage,
   AIPerformanceMetrics
-} from '@ai-cad-sdk/types';
+} from '../../types/src';
 
 /**
  * Analytics service for monitoring and tracking AI interactions

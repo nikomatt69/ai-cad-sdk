@@ -1,0 +1,175 @@
+---
+title: 'Caching Guide'
+description: 'Learn how to implement caching in AI CAD SDK'
+---
+
+# Caching Guide
+
+This guide explains how to implement and optimize caching in your AI CAD SDK application.
+
+## Basic Caching Setup
+
+Enable caching in your configuration:
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+
+const aiService = new AIService({
+  adapter: yourAdapter,
+  cacheConfig: {
+    enabled: true,
+    maxSize: 1000,  // Maximum number of entries
+    ttl: 3600,      // Time-to-live in seconds
+    namespace: 'my-app'
+  }
+});
+```
+
+## Cache Strategies
+
+### 1. Request-Level Caching
+
+Cache individual AI requests:
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+
+const aiService = new AIService({
+  adapter: yourAdapter,
+  cacheEnabled: true
+});
+
+async function getCachedResponse(prompt: string) {
+  const cacheKey = `prompt:${prompt}`;
+  
+  // Try to get from cache
+  const cached = await aiService.getFromCache(cacheKey);
+  if (cached) return cached;
+
+  // Generate new response
+  const response = await aiService.generateText(prompt);
+  
+  // Cache the response
+  await aiService.setInCache(cacheKey, response);
+  
+  return response;
+}
+```
+
+### 2. Partial Response Caching
+
+Cache parts of responses for better granularity:
+
+```typescript
+function extractCacheableData(response: AIResponse) {
+  return {
+    text: response.text,
+    usage: response.usage,
+    timestamp: Date.now()
+  };
+}
+
+async function getWithPartialCache(prompt: string) {
+  const cacheKey = `partial:${prompt}`;
+  const cached = await aiService.getFromCache(cacheKey);
+
+  if (cached && isValid(cached)) {
+    return {
+      ...cached,
+      fromCache: true
+    };
+  }
+
+  const response = await aiService.generateText(prompt);
+  await aiService.setInCache(cacheKey, extractCacheableData(response));
+  return response;
+}
+```
+
+## Cache Invalidation
+
+Implement proper cache invalidation strategies:
+
+```typescript
+class CacheInvalidator {
+  constructor(private aiService: AIService) {}
+
+  async invalidateByPattern(pattern: string) {
+    const keys = await this.aiService.getCacheKeys(pattern);
+    return Promise.all(keys.map(key => this.aiService.deleteFromCache(key)));
+  }
+
+  async invalidateByAge(maxAge: number) {
+    const now = Date.now();
+    const keys = await this.aiService.getCacheKeys('*');
+    
+    return Promise.all(
+      keys.map(async key => {
+        const entry = await this.aiService.getFromCache(key);
+        if (now - entry.timestamp > maxAge) {
+          return this.aiService.deleteFromCache(key);
+        }
+      })
+    );
+  }
+}
+```
+
+## Performance Optimization
+
+### 1. Cache Warming
+
+Implement cache warming for common requests:
+
+```typescript
+async function warmCache(commonPrompts: string[]) {
+  return Promise.all(
+    commonPrompts.map(async prompt => {
+      if (!await aiService.hasInCache(`prompt:${prompt}`)) {
+        const response = await aiService.generateText(prompt);
+        await aiService.setInCache(`prompt:${prompt}`, response);
+      }
+    })
+  );
+}
+```
+
+### 2. Cache Analytics
+
+Monitor cache performance:
+
+```typescript
+const cacheAnalytics = {
+  hits: 0,
+  misses: 0,
+  ratio: () => this.hits / (this.hits + this.misses),
+  
+  async trackCacheAccess(key: string, hit: boolean) {
+    hit ? this.hits++ : this.misses++;
+    await aiService.track('cache_access', {
+      key,
+      hit,
+      ratio: this.ratio()
+    });
+  }
+};
+```
+
+## Best Practices
+
+1. **Cache Keys**
+   - Use consistent key formats
+   - Include version in keys
+   - Consider namespace isolation
+
+2. **TTL Strategy**
+   - Set appropriate TTL values
+   - Use different TTLs for different types
+   - Implement auto-cleanup
+
+3. **Memory Management**
+   - Monitor cache size
+   - Implement LRU eviction
+   - Use compression when needed
+
+For more information about caching implementation, check out the [API Reference](/docs/api-reference/utils). 

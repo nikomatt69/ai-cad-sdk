@@ -1,9 +1,15 @@
 {
-  "name": "@ai-cad-sdk/utils",
+  "name": "ai-cad-sdk-utils",
   "version": "2.2.0",
   "description": "Utility functions for AI CAD SDK",
+  "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -11,7 +17,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@ai-cad-sdk/types": "2.2.0"
+    "ai-cad-sdk-types": "2.2.0"
   },
   "devDependencies": {
     "typescript": "^5.0.4",

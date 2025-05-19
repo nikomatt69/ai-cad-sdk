@@ -1,9 +1,15 @@
 {
-  "name": "@ai-cad-sdk/types",
+  "name": "ai-cad-sdk-types",
   "version": "2.2.0",
   "description": "TypeScript types for AI CAD SDK",
+  "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",

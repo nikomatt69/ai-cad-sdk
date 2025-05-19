@@ -1,0 +1,161 @@
+---
+title: 'React Package'
+description: 'React components and hooks for AI CAD SDK'
+---
+
+# React Package
+
+The `ai-cad-sdk-react` package provides React components and hooks for easy integration with the AI CAD SDK.
+
+## Hooks
+
+### useAIService
+
+The main hook for interacting with AI services:
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function CADComponent() {
+  const { 
+    generateText, 
+    isLoading, 
+    error 
+  } = useAIService({
+    provider: 'claude',
+    model: 'claude-3-7-sonnet-20250219'
+  });
+
+  const handleGenerate = async () => {
+    const result = await generateText('Convert this sketch to CAD');
+    // Handle result
+  };
+
+  return (
+    <div>
+      {isLoading && <LoadingSpinner />}
+      {error && <ErrorMessage error={error} />}
+      <button onClick={handleGenerate}>Generate CAD</button>
+    </div>
+  );
+}
+```
+
+### useAIConfig
+
+Hook for managing AI configuration:
+
+```typescript
+import { useAIConfig } from 'ai-cad-sdk-react';
+
+function ConfigPanel() {
+  const { config, updateConfig } = useAIConfig();
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      updateConfig({
+        maxTokens: 4000,
+        temperature: 0.7
+      });
+    }}>
+      {/* Configuration form */}
+    </form>
+  );
+}
+```
+
+## Components
+
+### AIProvider
+
+Context provider for AI services:
+
+```typescript
+import { AIProvider } from 'ai-cad-sdk-react';
+
+function App() {
+  return (
+    <AIProvider
+      config={{
+        defaultProvider: 'claude',
+        defaultModel: 'claude-3-7-sonnet-20250219',
+        apiKey: process.env.NEXT_PUBLIC_CLAUDE_API_KEY
+      }}
+    >
+      <YourApp />
+    </AIProvider>
+  );
+}
+```
+
+### AIModelSelector
+
+Component for selecting AI models:
+
+```typescript
+import { AIModelSelector } from 'ai-cad-sdk-react';
+
+function ModelSelection() {
+  return (
+    <AIModelSelector
+      onSelect={(model) => console.log('Selected model:', model)}
+      providers={['claude', 'openai']}
+    />
+  );
+}
+```
+
+### AIResponseDisplay
+
+Component for displaying AI responses:
+
+```typescript
+import { AIResponseDisplay } from 'ai-cad-sdk-react';
+
+function ResponseView({ response }) {
+  return (
+    <AIResponseDisplay
+      response={response}
+      formatting="markdown"
+      highlightCode={true}
+    />
+  );
+}
+```
+
+## Error Boundaries
+
+The package includes error boundaries for handling AI-related errors:
+
+```typescript
+import { AIErrorBoundary } from 'ai-cad-sdk-react';
+
+function SafeAIComponent() {
+  return (
+    <AIErrorBoundary
+      fallback={({ error }) => <ErrorDisplay error={error} />}
+    >
+      <YourAIComponent />
+    </AIErrorBoundary>
+  );
+}
+```
+
+## Performance Optimization
+
+The React package includes several optimizations:
+
+1. **Request Deduplication**
+   - Identical requests are deduplicated
+   - Responses are cached
+
+2. **State Management**
+   - Efficient React state updates
+   - Minimized re-renders
+
+3. **Error Recovery**
+   - Automatic retries
+   - Graceful degradation
+
+For more examples and integration guides, check out the [React Integration Guide](/docs/guides/react-integration). 

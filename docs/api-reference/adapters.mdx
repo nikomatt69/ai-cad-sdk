@@ -1,0 +1,112 @@
+---
+title: 'Adapters Package'
+description: 'AI Service Provider Adapters for the AI CAD SDK'
+---
+
+# Adapters Package
+
+The `ai-cad-sdk-adapters` package provides implementations for different AI service providers.
+
+## Claude Adapter
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+import { ClaudeAdapter } from 'ai-cad-sdk-adapters';
+
+const aiService = new AIService({
+  adapter: new ClaudeAdapter({
+    apiKey: process.env.CLAUDE_API_KEY,
+    model: 'claude-3-7-sonnet-20250219',
+    maxRetries: 3
+  })
+});
+
+// Make a request
+const response = await aiService.generateText({
+  prompt: 'Convert this sketch to CAD instructions',
+  maxTokens: 4000
+});
+```
+
+## OpenAI Adapter
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+import { OpenAIAdapter } from 'ai-cad-sdk-adapters';
+
+const aiService = new AIService({
+  adapter: new OpenAIAdapter({
+    apiKey: process.env.OPENAI_API_KEY,
+    model: 'gpt-4',
+    maxRetries: 3
+  })
+});
+
+// Make a request
+const response = await aiService.generateText({
+  prompt: 'Analyze this CAD model',
+  maxTokens: 2000
+});
+```
+
+## Custom Provider Adapter
+
+Create your own adapter by implementing the `AIAdapter` interface:
+
+```typescript
+import { AIService } from 'ai-cad-sdk-core';
+import { AIAdapter, AIRequest, AIResponse } from 'ai-cad-sdk-types';
+
+class CustomAdapter implements AIAdapter {
+  constructor(config: CustomConfig) {
+    // Initialize adapter
+  }
+
+  async generateText(request: AIRequest): Promise<AIResponse> {
+    // Implement custom provider logic
+  }
+}
+
+const aiService = new AIService({
+  adapter: new CustomAdapter({
+    // Custom configuration
+  })
+});
+```
+
+## Error Handling
+
+All adapters include built-in error handling:
+
+```typescript
+try {
+  const response = await aiService.generateText({
+    prompt: 'Complex CAD operation'
+  });
+} catch (error) {
+  if (error.type === 'RateLimitError') {
+    // Handle rate limiting
+  } else if (error.type === 'AuthenticationError') {
+    // Handle auth issues
+  }
+}
+```
+
+## Best Practices
+
+1. **API Key Management**
+   - Use environment variables for API keys
+   - Never hardcode sensitive credentials
+   - Implement proper key rotation
+
+2. **Error Handling**
+   - Always implement proper error handling
+   - Use retries for transient failures
+   - Log errors appropriately
+
+3. **Rate Limiting**
+   - Respect provider rate limits
+   - Implement backoff strategies
+   - Monitor usage and costs
+
+For implementation examples, check out the [Custom Providers Guide](/docs/guides/custom-providers). 

@@ -3,8 +3,8 @@ import {
   AIProviderType,
   AIServiceConfig,
   AIModelsConfig,
-} from '@ai-cad-sdk/types';
-import { logger } from '@ai-cad-sdk/utils';
+} from '../../types/src';
+import { logger } from '../../utils/src';
 
 /**
  * AI Model Types

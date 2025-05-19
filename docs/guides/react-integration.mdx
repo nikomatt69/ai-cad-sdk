@@ -1,0 +1,366 @@
+---
+title: 'React Integration Guide'
+description: 'Learn how to integrate AI CAD SDK with React applications'
+---
+
+# React Integration Guide
+
+This guide explains how to integrate the AI CAD SDK with your React application.
+
+## Setup
+
+First, install the required packages:
+
+```bash
+# Install core packages
+yarn add ai-cad-sdk-core ai-cad-sdk-react
+
+# Install supporting packages
+yarn add ai-cad-sdk-types ai-cad-sdk-utils
+```
+
+## Provider Setup
+
+Wrap your application with the `AIProvider`:
+
+```typescript
+import { AIProvider } from 'ai-cad-sdk-react';
+
+function App() {
+  return (
+    <AIProvider
+      config={{
+        defaultProvider: 'claude',
+        defaultModel: 'claude-3-7-sonnet-20250219',
+        apiKey: process.env.NEXT_PUBLIC_CLAUDE_API_KEY,
+        cacheEnabled: true,
+        analyticsEnabled: true
+      }}
+    >
+      <YourApp />
+    </AIProvider>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/ai-provider-setup.png" alt="AI Provider Setup" />
+</Frame>
+
+## Using Hooks
+
+### Basic Text Generation
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function CADGenerator() {
+  const { generateText, isLoading, error } = useAIService();
+  const [result, setResult] = useState('');
+
+  const handleGenerate = async () => {
+    const response = await generateText('Convert this sketch to CAD');
+    setResult(response.text);
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      <button 
+        onClick={handleGenerate}
+        disabled={isLoading}
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+      >
+        Generate CAD
+      </button>
+      
+      {isLoading && (
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        </div>
+      )}
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-lg">
+          {error.message}
+        </div>
+      )}
+      {result && (
+        <div className="p-4 bg-gray-100 rounded-lg">
+          <pre className="whitespace-pre-wrap">{result}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/cad-generator.png" alt="CAD Generator Component" />
+</Frame>
+
+### Configuration Management
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function ConfigurationPanel() {
+  const { config, updateConfig } = useAIService();
+
+  return (
+    <form 
+      className="p-4 space-y-4 bg-white shadow rounded-lg"
+      onSubmit={(e) => {
+        e.preventDefault();
+        updateConfig({
+          maxTokens: 4000,
+          temperature: 0.7
+        });
+      }}
+    >
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Max Tokens:
+          <input
+            type="number"
+            value={config.maxTokens}
+            onChange={(e) => updateConfig({
+              maxTokens: parseInt(e.target.value)
+            })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+        </label>
+      </div>
+      
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Temperature:
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={config.temperature}
+            onChange={(e) => updateConfig({
+              temperature: parseFloat(e.target.value)
+            })}
+            className="mt-1 block w-full"
+          />
+          <span className="text-sm text-gray-500">
+            {config.temperature}
+          </span>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+      >
+        Update Configuration
+      </button>
+    </form>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/config-panel.png" alt="Configuration Panel Component" />
+</Frame>
+
+## Components
+
+### Model Selector
+
+```typescript
+import { AIModelSelector } from 'ai-cad-sdk-react';
+
+function ModelSelection() {
+  return (
+    <div className="p-4 bg-white shadow rounded-lg">
+      <AIModelSelector
+        onSelect={(model) => console.log('Selected:', model)}
+        providers={['claude', 'openai']}
+        defaultProvider="claude"
+        className="w-full space-y-2"
+      />
+    </div>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/model-selector.png" alt="Model Selector Component" />
+</Frame>
+
+### Response Display
+
+```typescript
+import { AIResponseDisplay } from 'ai-cad-sdk-react';
+
+function ResponseViewer({ response }) {
+  return (
+    <div className="p-4 bg-white shadow rounded-lg">
+      <AIResponseDisplay
+        response={response}
+        formatting="markdown"
+        highlightCode={true}
+        codeTheme="github-dark"
+        className="prose max-w-none dark:prose-invert"
+      />
+    </div>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/response-viewer.png" alt="Response Viewer Component" />
+</Frame>
+
+## Error Handling
+
+Use the provided error boundary:
+
+```typescript
+import { AIErrorBoundary } from 'ai-cad-sdk-react';
+
+function SafeAIComponent() {
+  return (
+    <AIErrorBoundary
+      fallback={({ error, resetError }) => (
+        <div className="p-4 bg-red-100 text-red-700 rounded-lg">
+          <p className="font-medium">Error: {error.message}</p>
+          <button 
+            onClick={resetError}
+            className="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+    >
+      <YourAIComponent />
+    </AIErrorBoundary>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/error-boundary.png" alt="Error Boundary Component" />
+</Frame>
+
+## Performance Optimization
+
+### 1. Request Deduplication
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function OptimizedComponent() {
+  const { generateText, deduplicate } = useAIService();
+
+  // Requests with the same prompt will be deduplicated
+  const handleClick = deduplicate(async () => {
+    const result = await generateText('Optimize this CAD model');
+    // Handle result
+  });
+
+  return (
+    <button
+      onClick={handleClick}
+      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+    >
+      Generate Optimized CAD
+    </button>
+  );
+}
+```
+
+### 2. Caching Integration
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function CachedComponent() {
+  const { getFromCache, setInCache, generateText } = useAIService();
+
+  const getCachedResult = async (prompt: string) => {
+    const cached = await getFromCache(prompt);
+    if (cached) return cached;
+
+    const result = await generateText(prompt);
+    await setInCache(prompt, result);
+    return result;
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      <button
+        onClick={() => getCachedResult('Generate CAD model')}
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+      >
+        Get Cached Result
+      </button>
+    </div>
+  );
+}
+```
+
+### 3. Streaming Responses
+
+```typescript
+import { useAIService } from 'ai-cad-sdk-react';
+
+function StreamingComponent() {
+  const { streamText, isStreaming } = useAIService();
+  const [chunks, setChunks] = useState<string[]>([]);
+
+  const handleStream = async () => {
+    await streamText('Generate CAD model', {
+      onChunk: (chunk) => {
+        setChunks(prev => [...prev, chunk]);
+      }
+    });
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      <button
+        onClick={handleStream}
+        disabled={isStreaming}
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+      >
+        Stream Generation
+      </button>
+      
+      <div className="p-4 bg-gray-100 rounded-lg">
+        {chunks.map((chunk, i) => (
+          <span key={i} className="animate-fade-in">
+            {chunk}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+<Frame>
+  <img src="/assets/streaming-component.png" alt="Streaming Component" />
+</Frame>
+
+## Best Practices
+
+1. **State Management**
+   - Use appropriate React state
+   - Implement proper loading states
+   - Handle errors gracefully
+
+2. **Performance**
+   - Implement request caching
+   - Use streaming for long responses
+   - Optimize re-renders
+
+3. **User Experience**
+   - Show loading indicators
+   - Provide error feedback
+   - Enable retry mechanisms
+
+For more examples and component documentation, check out the [React Package Documentation](/docs/api-reference/react). 

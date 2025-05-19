@@ -1,0 +1,145 @@
+---
+title: 'Utils Package'
+description: 'Utility functions and analytics for AI CAD SDK'
+---
+
+# Utils Package
+
+The `ai-cad-sdk-utils` package provides utility functions and analytics capabilities for the AI CAD SDK.
+
+## Analytics
+
+The `AIAnalytics` class provides comprehensive analytics and monitoring capabilities.
+
+```typescript
+import { AIAnalytics } from 'ai-cad-sdk-utils';
+
+const analytics = new AIAnalytics({
+  endpoint: 'https://your-analytics-endpoint.com',
+  enabled: true
+});
+```
+
+### Tracking Events
+
+#### Track Request Start
+```typescript
+const requestId = analytics.trackRequestStart(
+  'text_to_cad',
+  'claude-3-7-sonnet-20250219',
+  { userId: 'user123' }
+);
+```
+
+#### Track Request Completion
+```typescript
+analytics.trackRequestComplete(
+  requestId,
+  500, // duration in ms
+  true, // success
+  100,  // prompt tokens
+  200   // completion tokens
+);
+```
+
+#### Track User Feedback
+```typescript
+analytics.trackFeedback(
+  requestId,
+  5, // rating (1-5)
+  'Great results!'
+);
+```
+
+### Analytics Metrics
+
+The analytics system tracks various metrics:
+
+| Metric | Description |
+|--------|-------------|
+| averageResponseTime | Average response time in milliseconds |
+| successRate | Percentage of successful requests |
+| tokenUsage | Total tokens used |
+| costEfficiency | Tokens per dollar spent |
+| modelUsage | Usage statistics per model |
+
+### Getting Analytics Data
+
+#### Get Current Metrics
+```typescript
+const metrics = analytics.getMetrics();
+```
+
+#### Get Recent Events
+```typescript
+const recentEvents = analytics.getRecentEvents(300); // last 5 minutes
+```
+
+#### Get Statistics
+```typescript
+const stats = analytics.getStats();
+```
+
+## Caching
+
+The utils package includes a caching system for optimizing response times:
+
+```typescript
+import { CacheManager } from 'ai-cad-sdk-utils';
+
+const cache = new CacheManager({
+  maxSize: 1000,
+  ttl: 3600 // 1 hour
+});
+
+// Store response
+await cache.set('key', response);
+
+// Get cached response
+const cached = await cache.get('key');
+```
+
+## Logging
+
+Structured logging with different levels:
+
+```typescript
+import { logger } from 'ai-cad-sdk-utils';
+
+logger.info('Operation completed', { details: {...} });
+logger.error('Error occurred', { error: err });
+logger.debug('Debug information', { data: {...} });
+```
+
+## Performance Monitoring
+
+Track and analyze performance metrics:
+
+```typescript
+import { PerformanceMonitor } from 'ai-cad-sdk-utils';
+
+const monitor = new PerformanceMonitor();
+
+// Start monitoring
+const trackingId = monitor.start('operation-name');
+
+// End monitoring
+const metrics = monitor.end(trackingId);
+```
+
+## Error Handling
+
+Utility functions for error handling:
+
+```typescript
+import { ErrorHandler } from 'ai-cad-sdk-utils';
+
+try {
+  // Your code
+} catch (error) {
+  const formattedError = ErrorHandler.format(error);
+  ErrorHandler.report(formattedError);
+}
+```
+
+For more examples and detailed usage, check out the [Examples](/docs/examples/basic-usage) section. 

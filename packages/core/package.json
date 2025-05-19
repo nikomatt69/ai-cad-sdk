@@ -1,9 +1,15 @@
 {
-  "name": "@ai-cad-sdk/core",
+  "name": "ai-cad-sdk-core",
   "version": "2.2.0",
   "description": "Core functionality for AI CAD SDK",
+  "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -11,8 +17,8 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@ai-cad-sdk/types": "2.2.0",
-    "@ai-cad-sdk/utils": "2.2.0"
+    "ai-cad-sdk-types": "2.2.0",
+    "ai-cad-sdk-utils": "2.2.0"
   },
   "devDependencies": {
     "typescript": "^5.0.4",

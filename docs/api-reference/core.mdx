@@ -1,0 +1,110 @@
+---
+title: 'Core Package'
+description: 'Core functionality for AI CAD SDK'
+---
+
+# Core Package
+
+The `ai-cad-sdk-core` package provides the main functionality for interacting with AI services. It handles configuration management, model selection, and request processing.
+
+## AIConfigManager
+
+The `AIConfigManager` class is the central configuration manager for AI services.
+
+```typescript
+import { AIConfigManager } from 'ai-cad-sdk-core';
+
+const configManager = new AIConfigManager({
+  defaultModel: 'claude-3-7-sonnet-20250219',
+  maxTokens: 4000,
+  temperature: 0.7,
+  cacheEnabled: true,
+  analyticsEnabled: true
+});
+```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| defaultModel | string | 'claude-3-7-sonnet-20250219' | Default AI model to use |
+| maxTokens | number | 4000 | Maximum tokens per request |
+| temperature | number | 0.7 | Model temperature (creativity) |
+| cacheEnabled | boolean | true | Enable response caching |
+| analyticsEnabled | boolean | true | Enable analytics tracking |
+
+### Methods
+
+#### getConfig()
+Returns the current configuration.
+
+```typescript
+const config = configManager.getConfig();
+```
+
+#### updateConfig(newConfig)
+Updates the configuration with new values.
+
+```typescript
+configManager.updateConfig({
+  maxTokens: 6000,
+  temperature: 0.5
+});
+```
+
+#### selectOptimalModel(taskComplexity, preferredProvider?)
+Selects the best model based on task complexity.
+
+```typescript
+const model = configManager.selectOptimalModel('high', 'claude');
+```
+
+#### estimateCost(model, inputTokens, outputTokens)
+Calculates the estimated cost for a request.
+
+```typescript
+const cost = configManager.estimateCost('claude-3-opus-20240229', 1000, 2000);
+```
+
+## Supported Models
+
+The SDK supports various AI models from different providers:
+
+### Claude Models
+- `claude-3-opus-20240229`: High performance, complex tasks
+- `claude-3-5-sonnet-20240229`: Balanced performance
+- `claude-3-haiku-20240229`: Fast, efficient for simple tasks
+- `claude-3-7-sonnet-20250219`: Enhanced capabilities
+
+### OpenAI Models
+- `gpt-4`: Advanced reasoning and analysis
+- `gpt-4-turbo`: Faster processing, good balance
+- `gpt-3.5-turbo`: Efficient for simple tasks
+- `gpt-4o`: Optimized for specific use cases
+
+## Error Handling
+
+The core package includes comprehensive error handling:
+
+```typescript
+try {
+  const result = await configManager.processRequest(/* ... */);
+} catch (error) {
+  if (error.code === 'TOKEN_LIMIT_EXCEEDED') {
+    // Handle token limit error
+  } else if (error.code === 'RATE_LIMIT_EXCEEDED') {
+    // Handle rate limit error
+  }
+}
+```
+
+## Performance Optimization
+
+The package includes built-in performance optimizations:
+
+- Automatic model selection based on task complexity
+- Response caching for frequently used requests
+- Token usage optimization
+- Cost-efficient model routing
+
+For more detailed examples and use cases, check out the [Examples](/docs/examples/basic-usage) section. 

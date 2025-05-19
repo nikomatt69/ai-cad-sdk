@@ -1,0 +1,146 @@
+---
+title: 'Types Package'
+description: 'TypeScript type definitions for AI CAD SDK'
+---
+
+# Types Package
+
+The `ai-cad-sdk-types` package contains TypeScript type definitions used across the SDK.
+
+## AI Models
+
+```typescript
+export enum AIModelType {
+  CLAUDE_3_OPUS = 'claude-3-opus-20240229',
+  CLAUDE_3_SONNET = 'claude-3-7-sonnet-20250219',
+  CLAUDE_3_HAIKU = 'claude-3-haiku-20240229',
+  GPT_4 = 'gpt-4',
+  GPT_4_TURBO = 'gpt-4-turbo',
+  GPT_35_TURBO = 'gpt-3.5-turbo'
+}
+
+export enum AIProviderType {
+  CLAUDE = 'claude',
+  OPENAI = 'openai',
+  CUSTOM = 'custom'
+}
+```
+
+## Configuration Types
+
+```typescript
+export interface AIServiceConfig {
+  provider: AIProviderType;
+  model: AIModelType;
+  apiKey: string;
+  maxTokens?: number;
+  temperature?: number;
+  cacheEnabled?: boolean;
+  analyticsEnabled?: boolean;
+}
+
+export interface AIModelsConfig {
+  defaultModel: AIModelType;
+  allowedModels?: AIModelType[];
+  modelSettings?: {
+    [key in AIModelType]?: {
+      maxTokens: number;
+      temperature: number;
+    };
+  };
+}
+```
+
+## Request/Response Types
+
+```typescript
+export interface AIRequest {
+  prompt: string;
+  maxTokens?: number;
+  temperature?: number;
+  stopSequences?: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface AIResponse {
+  text: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  metadata?: {
+    model: AIModelType;
+    provider: AIProviderType;
+    duration: number;
+  };
+}
+```
+
+## Error Types
+
+```typescript
+export interface AIError extends Error {
+  code: AIErrorCode;
+  provider?: AIProviderType;
+  model?: AIModelType;
+  requestId?: string;
+  metadata?: Record<string, any>;
+}
+
+export enum AIErrorCode {
+  AUTHENTICATION_ERROR = 'auth_error',
+  RATE_LIMIT_ERROR = 'rate_limit',
+  TOKEN_LIMIT_ERROR = 'token_limit',
+  INVALID_REQUEST = 'invalid_request',
+  SERVICE_ERROR = 'service_error',
+  NETWORK_ERROR = 'network_error'
+}
+```
+
+## Analytics Types
+
+```typescript
+export interface AIAnalyticsEvent {
+  eventType: AIEventType;
+  timestamp: number;
+  requestId?: string;
+  provider?: AIProviderType;
+  model?: AIModelType;
+  duration?: number;
+  tokenUsage?: {
+    prompt: number;
+    completion: number;
+    total: number;
+  };
+  metadata?: Record<string, any>;
+}
+
+export enum AIEventType {
+  REQUEST_START = 'request_start',
+  REQUEST_COMPLETE = 'request_complete',
+  REQUEST_ERROR = 'request_error',
+  USER_FEEDBACK = 'user_feedback'
+}
+```
+
+## Cache Types
+
+```typescript
+export interface AICacheConfig {
+  enabled: boolean;
+  maxSize?: number;
+  ttl?: number;
+  namespace?: string;
+}
+
+export interface AICacheEntry {
+  key: string;
+  value: any;
+  timestamp: number;
+  expiresAt: number;
+  metadata?: Record<string, any>;
+}
+```
+
+For usage examples and best practices, check out the [API Reference](/docs/api-reference/overview) section. 
