@@ -1,0 +1,73 @@
+---
+title: 'MCP System Overview'
+description: 'Learn about the Model Context Protocol (MCP) system and how to use it in your applications'
+---
+
+# Model Context Protocol System
+
+The Model Context Protocol (MCP) system is a powerful framework for integrating AI capabilities into your applications. This guide will help you understand the core concepts and get started quickly.
+
+## What is MCP?
+
+MCP (Model Context Protocol) is a standardized protocol for interacting with AI models in a consistent way across different providers and platforms. It provides:
+
+- Unified interface for multiple AI providers (OpenAI, Claude, etc.)
+- Built-in caching and optimization
+- Type-safe interactions
+- React hooks and components
+- Extensible architecture
+
+## Quick Start
+
+```typescript
+import { createMCPClient } from '@ai-cad-sdk/core';
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// Make AI requests
+const response = await client.complete({
+  prompt: 'Generate a 3D model of...',
+  maxTokens: 1000
+});
+```
+
+## Core Concepts
+
+### Providers
+
+MCP supports multiple AI providers out of the box:
+
+- OpenAI (GPT-3, GPT-4, DALL-E)
+- Anthropic Claude
+- Custom providers via adapters
+
+### Caching
+
+Built-in semantic caching reduces API costs and improves response times:
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'semantic',
+    similarity: 0.85
+  }
+});
+```
+
+### Type Safety
+
+Full TypeScript support with:
+
+- Request/response typing
+- Model-specific parameters
+- Runtime type validation
+
+## Next Steps
+
+- Check out the [API Reference](/docs/api-reference/overview)
+- Try the [Examples](/examples)
+- Read the [FAQ](/docs/faq)
+- View the [Changelog](/docs/CHANGELOG) 

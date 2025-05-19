@@ -1,0 +1,279 @@
+---
+title: 'Authentication'
+description: 'Learn how to handle authentication securely in AI CAD SDK'
+---
+
+# Authentication Guide
+
+Learn how to handle authentication securely in your AI CAD SDK application.
+
+## API Keys
+
+### Obtaining API Keys
+
+1. **OpenAI API Key**
+   - Visit [OpenAI's website](https://platform.openai.com)
+   - Sign up or log in
+   - Navigate to API section
+   - Create a new API key
+
+2. **Claude API Key**
+   - Visit [Anthropic's website](https://anthropic.com)
+   - Sign up for Claude access
+   - Generate API key from dashboard
+
+### Environment Variables
+
+Store API keys in environment variables:
+
+```env
+# .env
+OPENAI_API_KEY=sk-...
+CLAUDE_API_KEY=sk-ant-...
+```
+
+Load environment variables in your application:
+
+```typescript
+import dotenv from 'dotenv';
+dotenv.config();
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY
+});
+```
+
+## Secure Key Management
+
+### Backend Implementation
+
+Create a secure backend endpoint:
+
+```typescript
+// server.ts
+import express from 'express';
+import { createMCPClient } from '@ai-cad-sdk/core';
+
+const app = express();
+app.use(express.json());
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+app.post('/api/generate', async (req, res) => {
+  try {
+    const response = await client.complete(req.body);
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    });
+  }
+});
+```
+
+### Frontend Implementation
+
+Make requests through your backend:
+
+```typescript
+// client.ts
+async function generateDesign(prompt: string) {
+  const response = await fetch('/api/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      prompt,
+      maxTokens: 1000
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Generation failed');
+  }
+
+  return response.json();
+}
+```
+
+## Key Rotation
+
+Implement key rotation for security:
+
+```typescript
+class KeyManager {
+  private keys: Map<string, string[]> = new Map();
+  private currentIndex: Map<string, number> = new Map();
+
+  constructor(private config: {
+    providers: {
+      name: string;
+      keys: string[];
+    }[];
+  }) {
+    config.providers.forEach(provider => {
+      this.keys.set(provider.name, provider.keys);
+      this.currentIndex.set(provider.name, 0);
+    });
+  }
+
+  getKey(provider: string): string {
+    const keys = this.keys.get(provider);
+    const index = this.currentIndex.get(provider) || 0;
+    
+    // Rotate to next key
+    this.currentIndex.set(
+      provider,
+      (index + 1) % keys.length
+    );
+
+    return keys[index];
+  }
+}
+
+// Usage
+const keyManager = new KeyManager({
+  providers: [
+    {
+      name: 'openai',
+      keys: [
+        process.env.OPENAI_KEY_1,
+        process.env.OPENAI_KEY_2
+      ]
+    }
+  ]
+});
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: () => keyManager.getKey('openai')
+});
+```
+
+## Authentication Middleware
+
+Create authentication middleware:
+
+```typescript
+// middleware/auth.ts
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
+export function authMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      error: 'No token provided'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      error: 'Invalid token'
+    });
+  }
+}
+
+// Usage
+app.post(
+  '/api/generate',
+  authMiddleware,
+  async (req, res) => {
+    // Handle request
+  }
+);
+```
+
+## Rate Limiting
+
+Implement rate limiting per API key:
+
+```typescript
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+app.use('/api/', limiter);
+```
+
+## Best Practices
+
+1. **Never expose API keys in frontend code**
+   ```typescript
+   // ❌ Bad
+   const client = createMCPClient({
+     apiKey: 'sk-...' // Never do this
+   });
+
+   // ✅ Good
+   const client = createMCPClient({
+     apiKey: process.env.API_KEY
+   });
+   ```
+
+2. **Use environment-specific keys**
+   ```typescript
+   const apiKey = process.env.NODE_ENV === 'production'
+     ? process.env.PROD_API_KEY
+     : process.env.DEV_API_KEY;
+   ```
+
+3. **Implement key validation**
+   ```typescript
+   async function validateApiKey(key: string) {
+     const client = createMCPClient({
+       provider: 'openai',
+       apiKey: key
+     });
+
+     try {
+       await client.validateConfig();
+       return true;
+     } catch {
+       return false;
+     }
+   }
+   ```
+
+4. **Monitor key usage**
+   ```typescript
+   class KeyUsageMonitor {
+     private usage = new Map<string, number>();
+
+     track(key: string) {
+       const current = this.usage.get(key) || 0;
+       this.usage.set(key, current + 1);
+
+       if (current > 1000) {
+         // Alert admin
+         notifyAdmin(`High usage for key: ${key}`);
+       }
+     }
+   }
+   ```
+
+## Next Steps
+
+- Learn about [Error Handling](/docs/examples/error-handling)
+- Explore [Custom Adapters](/docs/examples/custom-adapter)
+- Check out [React Integration](/docs/examples/react-components) 

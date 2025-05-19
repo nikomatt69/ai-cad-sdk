@@ -1,0 +1,226 @@
+---
+title: 'React Components'
+description: 'Learn how to use AI CAD SDK React components and hooks'
+---
+
+# React Components Examples
+
+Learn how to integrate AI CAD SDK with React using our components and hooks.
+
+## Installation
+
+First, install the required packages:
+
+```bash
+# Using yarn
+yarn add @ai-cad-sdk/react @ai-cad-sdk/core
+
+# Using npm
+npm install @ai-cad-sdk/react @ai-cad-sdk/core
+```
+
+## Provider Setup
+
+Wrap your app with the MCP provider:
+
+```tsx
+import { MCPProvider } from '@ai-cad-sdk/react';
+
+function App() {
+  return (
+    <MCPProvider
+      config={{
+        provider: 'openai',
+        apiKey: process.env.OPENAI_API_KEY
+      }}
+    >
+      <YourApp />
+    </MCPProvider>
+  );
+}
+```
+
+## Using Hooks
+
+### Basic Usage
+
+```tsx
+import { useMCP } from '@ai-cad-sdk/react';
+
+function DesignGenerator() {
+  const { complete, loading, error } = useMCP();
+  const [design, setDesign] = useState('');
+
+  const generateDesign = async () => {
+    const response = await complete({
+      prompt: 'Generate a 3D model of a modern chair'
+    });
+    setDesign(response.text);
+  };
+
+  return (
+    <div>
+      <button onClick={generateDesign} disabled={loading}>
+        {loading ? 'Generating...' : 'Generate Design'}
+      </button>
+      {error && <div className="error">{error.message}</div>}
+      {design && <pre>{design}</pre>}
+    </div>
+  );
+}
+```
+
+### With Completion Hook
+
+```tsx
+import { useCompletion } from '@ai-cad-sdk/react';
+
+function DesignForm() {
+  const {
+    complete,
+    completion,
+    loading,
+    error
+  } = useCompletion();
+
+  const [parameters, setParameters] = useState({
+    width: 120,
+    height: 75,
+    material: 'wood'
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await complete({
+      prompt: `Design a table with:
+- Width: ${parameters.width}cm
+- Height: ${parameters.height}cm
+- Material: ${parameters.material}`,
+      maxTokens: 1000
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="number"
+        value={parameters.width}
+        onChange={(e) => setParameters({
+          ...parameters,
+          width: e.target.value
+        })}
+      />
+      {/* Other inputs */}
+      <button type="submit" disabled={loading}>
+        Generate
+      </button>
+      {completion && <div>{completion}</div>}
+    </form>
+  );
+}
+```
+
+## Components
+
+### AIResponse Component
+
+```tsx
+import { AIResponse } from '@ai-cad-sdk/react';
+
+function DesignViewer() {
+  return (
+    <AIResponse
+      prompt="Generate a modern chair design"
+      maxTokens={1000}
+      render={({ text, loading, error }) => (
+        <div>
+          {loading && <Spinner />}
+          {error && <Error message={error.message} />}
+          {text && <DesignRenderer design={text} />}
+        </div>
+      )}
+    />
+  );
+}
+```
+
+### ModelSelector Component
+
+```tsx
+import { ModelSelector } from '@ai-cad-sdk/react';
+
+function Settings() {
+  return (
+    <div>
+      <h2>AI Model Settings</h2>
+      <ModelSelector
+        onChange={(model) => console.log('Selected model:', model)}
+        providers={['openai', 'claude']}
+      />
+    </div>
+  );
+}
+```
+
+## Advanced Usage
+
+### Custom Hook
+
+```tsx
+import { useMCP } from '@ai-cad-sdk/react';
+
+function useDesignGenerator() {
+  const { complete } = useMCP();
+  const [history, setHistory] = useState([]);
+
+  const generateDesign = async (parameters) => {
+    const response = await complete({
+      prompt: `Generate a design with:
+${Object.entries(parameters)
+  .map(([key, value]) => `- ${key}: ${value}`)
+  .join('\n')}`,
+      maxTokens: 1500
+    });
+
+    setHistory(prev => [...prev, {
+      parameters,
+      design: response.text,
+      timestamp: new Date()
+    }]);
+
+    return response;
+  };
+
+  return {
+    generateDesign,
+    history
+  };
+}
+```
+
+## Error Boundaries
+
+```tsx
+import { MCPErrorBoundary } from '@ai-cad-sdk/react';
+
+function App() {
+  return (
+    <MCPErrorBoundary
+      fallback={({ error }) => (
+        <div className="error">
+          <h2>Something went wrong</h2>
+          <pre>{error.message}</pre>
+        </div>
+      )}
+    >
+      <YourApp />
+    </MCPErrorBoundary>
+  );
+}
+```
+
+## Next Steps
+
+- Check out [Custom Adapter](/docs/examples/custom-adapter) implementation
+- Learn about [Caching Setup](/docs/examples/caching-setup)
+- Explore [Error Handling](/docs/examples/error-handling) patterns 

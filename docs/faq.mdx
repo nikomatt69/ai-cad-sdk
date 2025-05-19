@@ -1,0 +1,98 @@
+---
+title: 'Frequently Asked Questions'
+description: 'Common questions about the AI CAD SDK'
+---
+
+# Frequently Asked Questions
+
+## General Questions
+
+### What is AI CAD SDK?
+AI CAD SDK is a comprehensive toolkit for integrating AI capabilities into CAD and design applications. It provides a unified interface for working with various AI models and providers.
+
+### Which AI providers are supported?
+We currently support:
+- OpenAI (GPT-3, GPT-4, DALL-E)
+- Anthropic Claude
+- Custom providers via adapters
+
+### Is it production-ready?
+Yes! The SDK is built with production use cases in mind, featuring:
+- Type safety
+- Error handling
+- Rate limiting
+- Caching
+- Performance optimizations
+
+## Technical Questions
+
+### How do I handle API keys securely?
+Never expose API keys in your frontend code. Instead:
+- Use environment variables
+- Implement a backend proxy
+- Use secure vaults for key storage
+
+```typescript
+// DO NOT
+const client = createMCPClient({
+  apiKey: 'sk-...' // ❌ Never hardcode
+});
+
+// DO
+const client = createMCPClient({
+  apiKey: process.env.OPENAI_API_KEY // ✅ Use env vars
+});
+```
+
+### How does caching work?
+The SDK includes semantic caching that:
+- Reduces API costs
+- Improves response times
+- Handles similar prompts
+- Is configurable per use case
+
+### Can I use custom models?
+Yes! You can:
+1. Create a custom adapter
+2. Implement the provider interface
+3. Register your adapter with the SDK
+
+## Performance
+
+### How do I optimize response times?
+Several strategies are available:
+- Use semantic caching
+- Implement request batching
+- Configure timeout settings
+- Use streaming for long responses
+
+### What about rate limiting?
+The SDK handles rate limiting by:
+- Respecting provider limits
+- Implementing exponential backoff
+- Providing queue management
+- Offering retry strategies
+
+## Troubleshooting
+
+### Common Error Messages
+
+#### "Provider not found"
+```typescript
+// Solution: Ensure provider is properly imported and registered
+import { OpenAIAdapter } from '@ai-cad-sdk/adapters';
+client.registerProvider('openai', new OpenAIAdapter());
+```
+
+#### "Invalid API key"
+- Check environment variables
+- Verify API key format
+- Ensure key has required permissions
+
+### Getting Help
+
+Need more help? You can:
+1. Check the [API Reference](/docs/api-reference/overview)
+2. Join our [Discord community](https://discord.gg/aicadsdk)
+3. Open an issue on [GitHub](https://github.com/yourusername/ai-cad-sdk)
+4. Contact support at support@aicadsdk.com 

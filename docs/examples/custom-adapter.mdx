@@ -1,0 +1,244 @@
+---
+title: 'Custom Adapter'
+description: 'Learn how to create custom AI provider adapters for AI CAD SDK'
+---
+
+# Custom Adapter Example
+
+Learn how to create a custom adapter for your own AI provider or service.
+
+## Basic Adapter Structure
+
+Create a new adapter by implementing the `AIAdapter` interface:
+
+```typescript
+import { AIAdapter, AIRequest, AIResponse } from '@ai-cad-sdk/types';
+
+export class CustomAdapter implements AIAdapter {
+  constructor(private apiKey: string) {}
+
+  async complete(request: AIRequest): Promise<AIResponse> {
+    // Implement your completion logic here
+    const response = await this.makeRequest(request);
+    return this.formatResponse(response);
+  }
+
+  private async makeRequest(request: AIRequest) {
+    // Make API call to your service
+    const response = await fetch('your-api-endpoint', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: request.prompt,
+        maxTokens: request.maxTokens,
+        // Map other parameters to your API
+      })
+    });
+
+    return response.json();
+  }
+
+  private formatResponse(rawResponse: any): AIResponse {
+    return {
+      text: rawResponse.generated_text,
+      tokens: rawResponse.usage?.total_tokens || 0,
+      // Map other response fields
+    };
+  }
+}
+```
+
+## Full Example
+
+Here's a complete example of a custom adapter with error handling and type safety:
+
+```typescript
+import {
+  AIAdapter,
+  AIRequest,
+  AIResponse,
+  AIError,
+  ModelConfig
+} from '@ai-cad-sdk/types';
+
+interface CustomAIConfig {
+  apiKey: string;
+  baseUrl?: string;
+  timeout?: number;
+}
+
+export class CustomAdapter implements AIAdapter {
+  private baseUrl: string;
+  private timeout: number;
+
+  constructor(private config: CustomAIConfig) {
+    this.baseUrl = config.baseUrl || 'https://api.your-service.com';
+    this.timeout = config.timeout || 30000;
+  }
+
+  async complete(request: AIRequest): Promise<AIResponse> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        this.timeout
+      );
+
+      const response = await fetch(
+        `${this.baseUrl}/v1/completions`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.config.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.formatRequest(request)),
+          signal: controller.signal
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new AIError({
+          code: response.status,
+          message: `API Error: ${response.statusText}`,
+          details: await response.json()
+        });
+      }
+
+      const data = await response.json();
+      return this.formatResponse(data);
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new AIError({
+          code: 'TIMEOUT',
+          message: 'Request timed out',
+          details: { timeout: this.timeout }
+        });
+      }
+      throw error;
+    }
+  }
+
+  private formatRequest(request: AIRequest) {
+    return {
+      prompt: request.prompt,
+      max_tokens: request.maxTokens,
+      temperature: request.temperature || 0.7,
+      // Map other parameters
+    };
+  }
+
+  private formatResponse(data: any): AIResponse {
+    return {
+      text: data.choices[0].text,
+      tokens: {
+        prompt: data.usage.prompt_tokens,
+        completion: data.usage.completion_tokens,
+        total: data.usage.total_tokens
+      },
+      model: data.model,
+      created: data.created,
+      // Map other fields
+    };
+  }
+
+  // Implement optional methods
+  async validateConfig(): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/models`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  getModelConfig(): ModelConfig {
+    return {
+      name: 'custom-model',
+      provider: 'custom',
+      maxTokens: 4096,
+      // Other model specifications
+    };
+  }
+}
+```
+
+## Using the Custom Adapter
+
+```typescript
+import { createMCPClient } from '@ai-cad-sdk/core';
+import { CustomAdapter } from './CustomAdapter';
+
+const client = createMCPClient({
+  adapter: new CustomAdapter({
+    apiKey: process.env.CUSTOM_API_KEY,
+    baseUrl: 'https://api.your-service.com',
+    timeout: 60000
+  })
+});
+
+// Use the client
+const response = await client.complete({
+  prompt: 'Generate a design...',
+  maxTokens: 1000
+});
+```
+
+## Best Practices
+
+1. **Error Handling**
+   - Implement proper error mapping
+   - Use timeout handling
+   - Provide detailed error messages
+
+2. **Type Safety**
+   - Use TypeScript interfaces
+   - Validate input/output
+   - Document type constraints
+
+3. **Configuration**
+   - Make configuration flexible
+   - Use sensible defaults
+   - Allow runtime configuration
+
+4. **Testing**
+   ```typescript
+   import { CustomAdapter } from './CustomAdapter';
+
+   describe('CustomAdapter', () => {
+     const adapter = new CustomAdapter({
+       apiKey: 'test-key'
+     });
+
+     it('handles successful completion', async () => {
+       const response = await adapter.complete({
+         prompt: 'Test prompt',
+         maxTokens: 100
+       });
+       expect(response.text).toBeDefined();
+     });
+
+     it('handles errors properly', async () => {
+       // Test error cases
+     });
+   });
+   ```
+
+## Next Steps
+
+- Learn about [Caching Setup](/docs/examples/caching-setup)
+- Explore [Error Handling](/docs/examples/error-handling)
+- Check [React Integration](/docs/examples/react-components) 

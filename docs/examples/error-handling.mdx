@@ -1,0 +1,274 @@
+---
+title: 'Error Handling'
+description: 'Learn how to handle errors effectively in AI CAD SDK'
+---
+
+# Error Handling Examples
+
+Learn how to handle errors and implement robust error handling strategies in your AI CAD SDK application.
+
+## Basic Error Handling
+
+Handle common errors with try-catch:
+
+```typescript
+import { createMCPClient, AIError } from '@ai-cad-sdk/core';
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+try {
+  const response = await client.complete({
+    prompt: 'Generate a design...'
+  });
+} catch (error) {
+  if (error instanceof AIError) {
+    console.error('AI Error:', error.message);
+    console.error('Error Code:', error.code);
+    console.error('Details:', error.details);
+  } else {
+    console.error('Unexpected error:', error);
+  }
+}
+```
+
+## Error Types
+
+Handle different types of errors:
+
+```typescript
+try {
+  await client.complete({ prompt: 'Design...' });
+} catch (error) {
+  switch (error.code) {
+    case 'INVALID_API_KEY':
+      console.error('API key is invalid or expired');
+      break;
+    case 'RATE_LIMIT_EXCEEDED':
+      console.error('Rate limit reached:', error.details.retryAfter);
+      break;
+    case 'CONTEXT_LENGTH_EXCEEDED':
+      console.error('Prompt too long:', error.details.maxLength);
+      break;
+    case 'PROVIDER_ERROR':
+      console.error('Provider error:', error.details);
+      break;
+    default:
+      console.error('Unknown error:', error);
+  }
+}
+```
+
+## Retry Logic
+
+Implement retry logic for transient errors:
+
+```typescript
+import { retry } from '@ai-cad-sdk/utils';
+
+const response = await retry(
+  async () => {
+    return client.complete({
+      prompt: 'Generate a design...'
+    });
+  },
+  {
+    maxAttempts: 3,
+    backoff: {
+      type: 'exponential',
+      initialDelay: 1000,
+      maxDelay: 10000
+    },
+    shouldRetry: (error) => {
+      return error.code === 'RATE_LIMIT_EXCEEDED' ||
+             error.code === 'TIMEOUT';
+    }
+  }
+);
+```
+
+## Error Boundaries in React
+
+Use error boundaries for React applications:
+
+```tsx
+import { MCPErrorBoundary } from '@ai-cad-sdk/react';
+
+function App() {
+  return (
+    <MCPErrorBoundary
+      fallback={({ error, resetError }) => (
+        <div className="error-container">
+          <h2>Something went wrong</h2>
+          <pre>{error.message}</pre>
+          <button onClick={resetError}>
+            Try Again
+          </button>
+        </div>
+      )}
+    >
+      <YourApp />
+    </MCPErrorBoundary>
+  );
+}
+```
+
+## Custom Error Handler
+
+Create a custom error handler:
+
+```typescript
+import { ErrorHandler } from '@ai-cad-sdk/types';
+
+class CustomErrorHandler implements ErrorHandler {
+  constructor(private options: {
+    onError?: (error: AIError) => void;
+    errorReporting?: ErrorReporting;
+  }) {}
+
+  async handle(error: AIError): Promise<void> {
+    // Log error
+    console.error('AI Error:', {
+      code: error.code,
+      message: error.message,
+      timestamp: new Date(),
+      details: error.details
+    });
+
+    // Report to error tracking service
+    if (this.options.errorReporting) {
+      await this.options.errorReporting.capture(error);
+    }
+
+    // Custom error handling
+    if (this.options.onError) {
+      this.options.onError(error);
+    }
+
+    // Handle specific errors
+    switch (error.code) {
+      case 'INVALID_API_KEY':
+        // Notify admin
+        await notifyAdmin('Invalid API key');
+        break;
+      case 'RATE_LIMIT_EXCEEDED':
+        // Add to retry queue
+        await retryQueue.add(error.context);
+        break;
+      default:
+        // Default handling
+        throw error;
+    }
+  }
+}
+
+// Use custom error handler
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  errorHandler: new CustomErrorHandler({
+    onError: (error) => {
+      // Custom error handling
+    },
+    errorReporting: new Sentry()
+  })
+});
+```
+
+## Error Monitoring
+
+Implement error monitoring:
+
+```typescript
+const client = createMCPClient({
+  errorHandler: {
+    onError: async (error) => {
+      // Log to monitoring service
+      await monitor.logError({
+        type: error.code,
+        message: error.message,
+        metadata: {
+          provider: error.details.provider,
+          timestamp: Date.now(),
+          requestId: error.details.requestId
+        }
+      });
+
+      // Track error metrics
+      metrics.increment('ai_errors', {
+        type: error.code,
+        provider: error.details.provider
+      });
+    }
+  }
+});
+```
+
+## Global Error Handling
+
+Set up global error handling:
+
+```typescript
+import { setGlobalErrorHandler } from '@ai-cad-sdk/core';
+
+setGlobalErrorHandler({
+  onError: (error) => {
+    // Global error handling
+    errorReporting.capture(error);
+    
+    // Notify user
+    notifications.show({
+      type: 'error',
+      message: 'An error occurred with the AI service'
+    });
+  },
+  onUnhandledRejection: (error) => {
+    // Handle unhandled promise rejections
+    console.error('Unhandled rejection:', error);
+  }
+});
+```
+
+## Best Practices
+
+1. **Graceful Degradation**
+   ```typescript
+   try {
+     const result = await client.complete({
+       prompt: 'Generate design...'
+     });
+   } catch (error) {
+     // Fallback to simpler model
+     if (error.code === 'MODEL_OVERLOADED') {
+       return await client.complete({
+         prompt: 'Generate design...',
+         model: 'simple-model'
+       });
+     }
+     throw error;
+   }
+   ```
+
+2. **Error Recovery**
+   ```typescript
+   class ErrorRecovery {
+     async recover(error: AIError) {
+       switch (error.code) {
+         case 'TOKEN_LIMIT_EXCEEDED':
+           return this.splitAndRetry(error.context);
+         case 'RATE_LIMIT_EXCEEDED':
+           return this.waitAndRetry(error.context);
+         default:
+           throw error;
+       }
+     }
+   }
+   ```
+
+## Next Steps
+
+- Check out [React Integration](/docs/examples/react-components)
+- Learn about [Custom Adapters](/docs/examples/custom-adapter)
+- Explore [Caching Setup](/docs/examples/caching-setup) 

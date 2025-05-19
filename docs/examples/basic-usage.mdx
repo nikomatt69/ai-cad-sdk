@@ -1,0 +1,140 @@
+---
+title: 'Basic Usage'
+description: 'Get started with AI CAD SDK basic usage examples'
+---
+
+# Basic Usage Examples
+
+Learn how to use the AI CAD SDK with these basic examples.
+
+## Installation
+
+First, install the required packages:
+
+```bash
+# Using yarn
+yarn add @ai-cad-sdk/core @ai-cad-sdk/adapters
+
+# Using npm
+npm install @ai-cad-sdk/core @ai-cad-sdk/adapters
+```
+
+## Basic Client Setup
+
+Create a new MCP client with your preferred provider:
+
+```typescript
+import { createMCPClient } from '@ai-cad-sdk/core';
+import { OpenAIAdapter } from '@ai-cad-sdk/adapters';
+
+// Create client with OpenAI
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// Or with Claude
+const claudeClient = createMCPClient({
+  provider: 'claude',
+  apiKey: process.env.CLAUDE_API_KEY
+});
+```
+
+## Making Requests
+
+### Simple Completion
+
+```typescript
+const response = await client.complete({
+  prompt: 'Generate a 3D model of a modern chair',
+  maxTokens: 1000
+});
+
+console.log(response.text);
+```
+
+### With Parameters
+
+```typescript
+const response = await client.complete({
+  prompt: 'Design a table with specific dimensions',
+  parameters: {
+    width: 120,
+    height: 75,
+    depth: 80,
+    material: 'wood'
+  },
+  maxTokens: 1500
+});
+```
+
+### Using Templates
+
+```typescript
+const template = `
+Design a {furniture_type} with:
+- Width: {width}cm
+- Height: {height}cm
+- Material: {material}
+`;
+
+const response = await client.complete({
+  template,
+  variables: {
+    furniture_type: 'desk',
+    width: 140,
+    height: 75,
+    material: 'oak'
+  }
+});
+```
+
+## Error Handling
+
+```typescript
+try {
+  const response = await client.complete({
+    prompt: 'Generate a complex design...',
+    maxTokens: 2000
+  });
+} catch (error) {
+  if (error.code === 'RATE_LIMIT_EXCEEDED') {
+    console.log('Rate limit reached, retrying in 60s...');
+    // Implement retry logic
+  } else {
+    console.error('Error:', error.message);
+  }
+}
+```
+
+## Using Caching
+
+Enable semantic caching to improve performance:
+
+```typescript
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: {
+    type: 'semantic',
+    similarity: 0.85,
+    ttl: 3600 // 1 hour
+  }
+});
+
+// Cached responses will be returned for similar prompts
+const response1 = await client.complete({
+  prompt: 'Design a modern chair'
+});
+
+const response2 = await client.complete({
+  prompt: 'Create a contemporary chair design'
+}); // Uses cached response
+```
+
+## Next Steps
+
+- Try the [React Components](/docs/examples/react-components) example
+- Learn about [Custom Adapters](/docs/examples/custom-adapter)
+- Explore [Caching Setup](/docs/examples/caching-setup)
+- See [Error Handling](/docs/examples/error-handling) patterns 

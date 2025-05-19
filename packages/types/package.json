@@ -1,0 +1,19 @@
+{
+  "name": "@ai-cad-sdk/types",
+  "version": "2.2.0",
+  "description": "TypeScript types for AI CAD SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.4",
+    "rimraf": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

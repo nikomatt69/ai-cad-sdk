@@ -1,0 +1,95 @@
+{
+  "name": "AI CAD SDK",
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#4F46E5",
+    "light": "#6366F1",
+    "dark": "#4338CA"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/cadcamfun/ai-cad-sdk"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/docs/mcp-system"
+  },
+  "anchors": [
+    {
+      "name": "API Reference",
+      "icon": "book-open-cover",
+      "url": "api-reference"
+    },
+    {
+      "name": "Examples",
+      "icon": "code",
+      "url": "examples"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "docs/mcp-system",
+        "docs/faq",
+        "docs/CHANGELOG"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "docs/api-reference/overview",
+        {
+          "group": "Packages",
+          "pages": [
+            "docs/api-reference/core",
+            "docs/api-reference/adapters",
+            "docs/api-reference/react",
+            "docs/api-reference/types",
+            "docs/api-reference/utils"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "docs/guides/getting-started",
+        "docs/guides/authentication",
+        "docs/guides/caching",
+        "docs/guides/custom-providers",
+        "docs/guides/react-integration",
+        "docs/guides/typescript"
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        "docs/examples/basic-usage",
+        "docs/examples/react-components",
+        "docs/examples/custom-adapter",
+        "docs/examples/caching-setup",
+        "docs/examples/error-handling"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/cadcamfun/ai-cad-sdk",
+    "discord": "https://discord.gg/aicadsdk"
+  },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-XXXXXXXXXX"
+    }
+  },
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true
+  }
+} 

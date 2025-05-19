@@ -1,0 +1,230 @@
+---
+title: 'Caching Setup'
+description: 'Learn how to configure and use caching in AI CAD SDK'
+---
+
+# Caching Setup Examples
+
+Learn how to implement and configure caching in your AI CAD SDK application.
+
+## Basic Caching
+
+Enable basic caching with default settings:
+
+```typescript
+import { createMCPClient } from '@ai-cad-sdk/core';
+
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: {
+    type: 'semantic',  // or 'exact' for exact matching
+    enabled: true
+  }
+});
+```
+
+## Semantic Caching
+
+Configure semantic caching with custom settings:
+
+```typescript
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: {
+    type: 'semantic',
+    similarity: 0.85,  // 0-1 threshold for similarity matching
+    ttl: 3600,        // Cache TTL in seconds
+    maxSize: 1000,    // Maximum number of cached items
+    namespace: 'designs'  // Optional namespace for cache isolation
+  }
+});
+```
+
+## Custom Cache Storage
+
+Implement a custom cache storage adapter:
+
+```typescript
+import { CacheStorage } from '@ai-cad-sdk/types';
+
+class RedisCacheStorage implements CacheStorage {
+  constructor(private redis: Redis) {}
+
+  async get(key: string): Promise<any> {
+    const value = await this.redis.get(key);
+    return value ? JSON.parse(value) : null;
+  }
+
+  async set(key: string, value: any, ttl?: number): Promise<void> {
+    await this.redis.set(
+      key,
+      JSON.stringify(value),
+      'EX',
+      ttl || 3600
+    );
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.redis.del(key);
+  }
+
+  async clear(): Promise<void> {
+    await this.redis.flushdb();
+  }
+}
+
+// Use custom storage
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: {
+    type: 'semantic',
+    storage: new RedisCacheStorage(redisClient)
+  }
+});
+```
+
+## Cache Strategies
+
+### Exact Matching
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'exact',
+    keyGenerator: (request) => {
+      return `${request.prompt}:${request.maxTokens}`;
+    }
+  }
+});
+```
+
+### Semantic Matching with Custom Embeddings
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'semantic',
+    embeddings: {
+      generate: async (text) => {
+        // Custom embedding generation
+        const response = await fetch('your-embedding-api', {
+          method: 'POST',
+          body: JSON.stringify({ text })
+        });
+        return response.json();
+      },
+      similarity: (a, b) => {
+        // Custom similarity calculation
+        return cosineSimilarity(a, b);
+      }
+    }
+  }
+});
+```
+
+## Cache Events
+
+Listen to cache events:
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'semantic',
+    onHit: (key, value) => {
+      console.log('Cache hit:', key);
+      analytics.track('cache_hit', { key });
+    },
+    onMiss: (key) => {
+      console.log('Cache miss:', key);
+      analytics.track('cache_miss', { key });
+    },
+    onError: (error) => {
+      console.error('Cache error:', error);
+      errorReporting.capture(error);
+    }
+  }
+});
+```
+
+## Advanced Configuration
+
+### Conditional Caching
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'semantic',
+    shouldCache: (request) => {
+      // Only cache specific types of requests
+      return request.prompt.length > 50 &&
+             request.maxTokens < 1000;
+    },
+    transform: {
+      store: (response) => {
+        // Transform response before caching
+        return {
+          ...response,
+          cached: true,
+          timestamp: Date.now()
+        };
+      },
+      load: (cached) => {
+        // Transform cached data before use
+        return {
+          ...cached,
+          fromCache: true
+        };
+      }
+    }
+  }
+});
+```
+
+### Multiple Cache Layers
+
+```typescript
+import {
+  createMultiLayerCache,
+  MemoryCache,
+  RedisCache
+} from '@ai-cad-sdk/cache';
+
+const cache = createMultiLayerCache([
+  new MemoryCache({ ttl: 300 }),    // 5-minute memory cache
+  new RedisCache({ ttl: 3600 })     // 1-hour Redis cache
+]);
+
+const client = createMCPClient({
+  cache
+});
+```
+
+## Performance Monitoring
+
+```typescript
+const client = createMCPClient({
+  cache: {
+    type: 'semantic',
+    metrics: {
+      collect: true,
+      callback: (metrics) => {
+        console.log('Cache metrics:', {
+          hits: metrics.hits,
+          misses: metrics.misses,
+          ratio: metrics.hitRatio,
+          avgLatency: metrics.averageLatency
+        });
+      }
+    }
+  }
+});
+```
+
+## Next Steps
+
+- Explore [Error Handling](/docs/examples/error-handling)
+- Check out [React Integration](/docs/examples/react-components)
+- Learn about [Custom Adapters](/docs/examples/custom-adapter) 

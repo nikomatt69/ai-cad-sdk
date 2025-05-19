@@ -1,0 +1,128 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "AI CAD SDK",
+  "logo": {
+    "light": "/static/logo-light.png",
+    "dark": "/static/logo-dark.png"
+  },
+  "favicon": "/static/favicon.ico",
+  "colors": {
+    "primary": "#4F46E5",
+    "light": "#6366F1",
+    "dark": "#4338CA"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/yourusername/ai-cad-sdk"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/getting-started"
+  },
+  "anchors": [
+    {
+      "name": "Documentation",
+      "url": "/getting-started"
+    },
+    {
+      "name": "API Reference",
+      "url": "/api-reference"
+    },
+    {
+      "name": "Examples",
+      "url": "/examples"
+    }
+  ],
+  "tabs": [
+    {
+      "name": "Documentation",
+      "url": "/getting-started"
+    },
+    {
+      "name": "API Reference",
+      "url": "/api-reference"
+    },
+    {
+      "name": "Examples",
+      "url": "/examples"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction", "getting-started", "installation"]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "guides/basic-usage",
+        "guides/advanced-usage",
+        "guides/integration"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/ai-client",
+        "api-reference/types",
+        "api-reference/errors"
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        "examples/basic-usage",
+        "examples/advanced-usage",
+        "examples/integration"
+      ]
+    }
+  ],
+  "backgroundImage": false,
+  "version": {
+    "current": {
+      "label": "1.0.0",
+      "path": "v1"
+    }
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": false
+  },
+  "footerSocials": {
+    "github": "yourusername/ai-cad-sdk",
+    "twitter": "yourusername"
+  },
+  "analytics": {
+    "posthog": {
+      "apiKey": "your-posthog-key",
+      "apiHost": "https://app.posthog.com"
+    }
+  },
+  "header": {
+    "title": "AI CAD SDK",
+    "logo": {
+      "light": "/static/logo-light.png",
+      "dark": "/static/logo-dark.png"
+    },
+    "links": [
+      {
+        "label": "Documentation",
+        "url": "/getting-started"
+      },
+      {
+        "label": "API Reference",
+        "url": "/api-reference"
+      },
+      {
+        "label": "Examples",
+        "url": "/examples"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/yourusername/ai-cad-sdk"
+      }
+    ]
+  }
+}

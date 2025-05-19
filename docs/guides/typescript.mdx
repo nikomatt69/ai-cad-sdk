@@ -1,0 +1,348 @@
+---
+title: 'TypeScript Integration'
+description: 'Learn how to use AI CAD SDK with TypeScript'
+---
+
+# TypeScript Integration Guide
+
+Learn how to leverage TypeScript with AI CAD SDK for better type safety and developer experience.
+
+## Setup
+
+### TypeScript Configuration
+
+Create or update your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
+```
+
+### Type Definitions
+
+Import types from the SDK:
+
+```typescript
+import {
+  AIRequest,
+  AIResponse,
+  AIError,
+  MCPConfig,
+  ModelConfig
+} from '@ai-cad-sdk/types';
+```
+
+## Basic Usage
+
+### Client Configuration
+
+```typescript
+import { createMCPClient, MCPConfig } from '@ai-cad-sdk/core';
+
+const config: MCPConfig = {
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  models: {
+    default: 'gpt-4'
+  }
+};
+
+const client = createMCPClient(config);
+```
+
+### Request Types
+
+```typescript
+import { AIRequest } from '@ai-cad-sdk/types';
+
+interface DesignRequest extends AIRequest {
+  parameters: {
+    width: number;
+    height: number;
+    material: string;
+  };
+}
+
+async function generateDesign(request: DesignRequest) {
+  const response = await client.complete(request);
+  return response;
+}
+
+// Usage
+const design = await generateDesign({
+  prompt: 'Generate a table design',
+  parameters: {
+    width: 120,
+    height: 75,
+    material: 'oak'
+  },
+  maxTokens: 1000
+});
+```
+
+## React Integration
+
+### Provider Types
+
+```typescript
+import { MCPProviderProps } from '@ai-cad-sdk/react';
+
+interface CustomProviderProps extends MCPProviderProps {
+  theme?: 'light' | 'dark';
+  onError?: (error: AIError) => void;
+}
+
+function CustomProvider({
+  children,
+  theme = 'light',
+  onError,
+  ...props
+}: CustomProviderProps) {
+  return (
+    <MCPProvider
+      {...props}
+      onError={(error) => {
+        console.error('AI Error:', error);
+        onError?.(error);
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        {children}
+      </ThemeProvider>
+    </MCPProvider>
+  );
+}
+```
+
+### Hook Types
+
+```typescript
+import { useMCP, UseCompletionOptions } from '@ai-cad-sdk/react';
+
+function DesignGenerator() {
+  const { complete, loading, error } = useMCP<DesignRequest>();
+  const [design, setDesign] = useState<string>('');
+
+  const generateDesign = async () => {
+    const response = await complete({
+      prompt: 'Generate a modern chair',
+      parameters: {
+        width: 60,
+        height: 80,
+        material: 'metal'
+      }
+    });
+    setDesign(response.text);
+  };
+
+  return (
+    <div>
+      <button
+        onClick={generateDesign}
+        disabled={loading}
+      >
+        Generate
+      </button>
+      {error && (
+        <ErrorDisplay error={error} />
+      )}
+      {design && (
+        <DesignPreview design={design} />
+      )}
+    </div>
+  );
+}
+```
+
+## Custom Types
+
+### Model Configuration
+
+```typescript
+import { ModelConfig } from '@ai-cad-sdk/types';
+
+interface CustomModelConfig extends ModelConfig {
+  capabilities: string[];
+  costPerToken: number;
+}
+
+const modelConfig: CustomModelConfig = {
+  name: 'custom-model',
+  provider: 'custom',
+  maxTokens: 4096,
+  capabilities: ['3d_design', 'texturing'],
+  costPerToken: 0.0001
+};
+```
+
+### Error Types
+
+```typescript
+import { AIError } from '@ai-cad-sdk/types';
+
+class DesignError extends AIError {
+  constructor(
+    message: string,
+    public designId?: string
+  ) {
+    super({
+      code: 'DESIGN_ERROR',
+      message,
+      details: { designId }
+    });
+  }
+}
+
+try {
+  await generateDesign();
+} catch (error) {
+  if (error instanceof DesignError) {
+    console.error(
+      `Design error for ID ${error.designId}:`,
+      error.message
+    );
+  }
+}
+```
+
+## Type Guards
+
+```typescript
+import { AIResponse } from '@ai-cad-sdk/types';
+
+interface DesignResponse extends AIResponse {
+  design: {
+    id: string;
+    dimensions: {
+      width: number;
+      height: number;
+    };
+  };
+}
+
+function isDesignResponse(
+  response: AIResponse
+): response is DesignResponse {
+  return 'design' in response &&
+    typeof response.design === 'object' &&
+    'id' in response.design;
+}
+
+async function handleResponse(
+  response: AIResponse
+) {
+  if (isDesignResponse(response)) {
+    // TypeScript knows this is a DesignResponse
+    console.log(response.design.dimensions);
+  }
+}
+```
+
+## Generic Types
+
+```typescript
+import { AIAdapter } from '@ai-cad-sdk/types';
+
+interface WithMetadata<T> {
+  data: T;
+  metadata: {
+    timestamp: number;
+    source: string;
+  };
+}
+
+class MetadataAdapter<T> implements AIAdapter {
+  constructor(private baseAdapter: AIAdapter) {}
+
+  async complete(
+    request: AIRequest
+  ): Promise<WithMetadata<T>> {
+    const response = await this.baseAdapter
+      .complete(request);
+
+    return {
+      data: response as T,
+      metadata: {
+        timestamp: Date.now(),
+        source: this.baseAdapter.name
+      }
+    };
+  }
+}
+```
+
+## Best Practices
+
+1. **Use Strict Mode**
+   ```json
+   {
+     "compilerOptions": {
+       "strict": true,
+       "noImplicitAny": true,
+       "strictNullChecks": true
+     }
+   }
+   ```
+
+2. **Type Assertions**
+   ```typescript
+   // ❌ Avoid
+   const response = client.complete(
+    request as any
+   );
+
+   // ✅ Better
+   const response = client.complete<DesignRequest>(
+    request
+   );
+   ```
+
+3. **Error Handling**
+   ```typescript
+   try {
+     const response = await client.complete(request);
+   } catch (error) {
+     if (error instanceof AIError) {
+       // Handle AI-specific errors
+     } else {
+       // Handle other errors
+     }
+   }
+   ```
+
+4. **Type Documentation**
+   ```typescript
+   /**
+    * Represents a design request with specific parameters
+    */
+   interface DesignRequest {
+     /** The width of the design in centimeters */
+     width: number;
+     /** The height of the design in centimeters */
+     height: number;
+     /** The material to use */
+     material: string;
+   }
+   ```
+
+## Next Steps
+
+- Check out [Custom Adapters](/docs/examples/custom-adapter)
+- Learn about [Error Handling](/docs/examples/error-handling)
+- Explore [React Integration](/docs/examples/react-components) 

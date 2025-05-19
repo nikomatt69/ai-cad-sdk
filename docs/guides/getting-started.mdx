@@ -1,0 +1,207 @@
+---
+title: 'Getting Started'
+description: 'Quick start guide for AI CAD SDK'
+---
+
+# Getting Started with AI CAD SDK
+
+This guide will help you get up and running with AI CAD SDK quickly.
+
+## Installation
+
+First, install the required packages using your preferred package manager:
+
+```bash
+# Using yarn
+yarn add @ai-cad-sdk/core @ai-cad-sdk/adapters
+
+# Using npm
+npm install @ai-cad-sdk/core @ai-cad-sdk/adapters
+```
+
+For React applications, also install the React package:
+
+```bash
+yarn add @ai-cad-sdk/react
+```
+
+## Basic Setup
+
+Create a new MCP client:
+
+```typescript
+import { createMCPClient } from '@ai-cad-sdk/core';
+
+const client = createMCPClient({
+  provider: 'openai',  // or 'claude'
+  apiKey: process.env.OPENAI_API_KEY
+});
+```
+
+## Making Your First Request
+
+Generate your first design:
+
+```typescript
+const response = await client.complete({
+  prompt: 'Generate a 3D model of a modern chair',
+  maxTokens: 1000
+});
+
+console.log(response.text);
+```
+
+## React Integration
+
+For React applications, wrap your app with the MCP provider:
+
+```tsx
+import { MCPProvider } from '@ai-cad-sdk/react';
+
+function App() {
+  return (
+    <MCPProvider
+      config={{
+        provider: 'openai',
+        apiKey: process.env.OPENAI_API_KEY
+      }}
+    >
+      <YourApp />
+    </MCPProvider>
+  );
+}
+```
+
+Use the MCP hook in your components:
+
+```tsx
+import { useMCP } from '@ai-cad-sdk/react';
+
+function DesignGenerator() {
+  const { complete, loading } = useMCP();
+  const [design, setDesign] = useState('');
+
+  const generateDesign = async () => {
+    const response = await complete({
+      prompt: 'Generate a modern chair design'
+    });
+    setDesign(response.text);
+  };
+
+  return (
+    <div>
+      <button onClick={generateDesign} disabled={loading}>
+        Generate Design
+      </button>
+      {design && <pre>{design}</pre>}
+    </div>
+  );
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in your project root:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+CLAUDE_API_KEY=your_claude_key_here
+```
+
+### TypeScript Configuration
+
+If you're using TypeScript, ensure your `tsconfig.json` includes:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+## Advanced Configuration
+
+### Custom Provider Settings
+
+```typescript
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  config: {
+    maxTokens: 2000,
+    temperature: 0.7,
+    topP: 1,
+    frequencyPenalty: 0,
+    presencePenalty: 0
+  }
+});
+```
+
+### Caching
+
+Enable caching for better performance:
+
+```typescript
+const client = createMCPClient({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: {
+    type: 'semantic',
+    similarity: 0.85,
+    ttl: 3600
+  }
+});
+```
+
+### Error Handling
+
+Implement basic error handling:
+
+```typescript
+try {
+  const response = await client.complete({
+    prompt: 'Generate a design...'
+  });
+} catch (error) {
+  console.error('Error:', error.message);
+  // Handle error appropriately
+}
+```
+
+## Next Steps
+
+1. **Explore Examples**
+   - Check out the [Basic Usage](/docs/examples/basic-usage) examples
+   - Try the [React Components](/docs/examples/react-components)
+
+2. **Learn Advanced Topics**
+   - [Custom Adapters](/docs/examples/custom-adapter)
+   - [Caching Setup](/docs/examples/caching-setup)
+   - [Error Handling](/docs/examples/error-handling)
+
+3. **API Reference**
+   - Browse the [API Reference](/docs/api-reference/overview)
+   - Learn about [Types](/docs/api-reference/types)
+
+4. **Best Practices**
+   - Read the [Authentication Guide](/docs/guides/authentication)
+   - Understand [TypeScript Integration](/docs/guides/typescript)
+
+## Support
+
+If you need help:
+
+1. Check the [FAQ](/docs/faq)
+2. Browse the [documentation](/docs)
+3. Join our [Discord community](https://discord.gg/aicadsdk)
+4. Open an issue on [GitHub](https://github.com/yourusername/ai-cad-sdk) 

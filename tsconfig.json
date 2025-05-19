@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ai-cad-sdk/*": ["packages/*/src"]
+    }
+  },
+  "include": ["packages/*/src"],
+  "exclude": ["node_modules", "**/dist"],
+  "references": [
+    { "path": "packages/types" },
+    { "path": "packages/utils" },
+    { "path": "packages/core" },
+    { "path": "packages/adapters" },
+    { "path": "packages/react" }
+  ]
+}
